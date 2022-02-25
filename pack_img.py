@@ -71,5 +71,6 @@ if __name__ == '__main__':
                     os.mkdir(path)
             save_data()
             download_img()
+            is_exit = True
         elif select == 'n':
             is_exit = True
