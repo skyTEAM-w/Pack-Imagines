@@ -35,7 +35,7 @@ def download_img():
             try:
                 response = urllib.request.urlopen(request)
                 img_name = name + '.jpeg'
-                if response.getcode() == 200:
+                if response.getcode() == 200 and not os.path.exists(save_path[index] + '\\' + img_name):
                     with open(save_path[index] + '\\' + img_name, 'wb') as file:
                         file.write(response.read())
             except urllib.error.URLError as e:
