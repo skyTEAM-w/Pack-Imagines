@@ -15,22 +15,32 @@ save_path = [main_save_path + '\\健康码', main_save_path + '\\行程码', mai
 check_path = '.\\temp'
 temp_path = [check_path + '\\health_code', check_path + '\\tra_code', check_path + '\\close_check']
 ID = r'^([1-9]\d{5}[12]\d{3}(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])\d{3}[0-9xX])$'
-file_name = '{:0>2d}月{:0>2d}日信息xs2101“两码一查询”（收集结果）.xlsx'.format(date.month, date.day)
+Day = r'{}-{:0>2d}-{:0>2d}.*'.format(date.year, date.month, date.day)
+Day2 = r'.*{}\.{:0>2d}\.{:0>2d}.*'.format(date.year, date.month, date.day)
+file_name = '{}月{:0>2d}日信息xs2101“两码一查询”（收集结果）.xlsx'.format(date.month, date.day)
 
 
 def save_data():
     main_book = openpyxl.load_workbook(file_name)
     main_sheet = main_book.active
+
     for i in range(2, main_sheet.max_row):
+
         if main_sheet.cell(i, 1).value is not None:
             name = main_sheet.cell(i, 3).value
             url = []
+
             for j in range(4, main_sheet.max_column):
+
                 if main_sheet.cell(i, j).value is not None:
                     url.append(main_sheet.cell(i, j).hyperlink.target)
+
             data_dic.update({name: [url,
-                                    [str(time.time()).replace('.', '_') + str(i) + '.jpeg'
-                                     for i in range(3)]]})
+                                    [str(url[i])[23:66:1].replace('/', '').replace('.', '')
+                                        .replace('?', '') + '.jpeg'
+                                        for i in range(3)]]})
+            print(i - 1, end=' ')
+            print()
 
 
 def download_img():
@@ -44,20 +54,26 @@ def download_img():
             try:
                 response = urllib.request.urlopen(request)
                 img_name = name + '.jpeg'
+
                 if response.getcode() == 200 and not os.path.exists(save_path[index] + '\\' + img_name):
                     with open(save_path[index] + '\\' + img_name, 'wb') as file:
                         file.write(response.read())
-                    # with open(temp_path[index] + '\\' + data_dic.get(name)[1][index], 'wb') as f:
-                    #     f.write(response.read())
+
                 shutil.copyfile(save_path[index] + '\\' + img_name,
                                 temp_path[index] + '\\' + data_dic.get(name)[1][index])
+
             except urllib.error.URLError as e:
                 if hasattr(e, 'code'):
                     print(e.code)
                 if hasattr(e, 'reason'):
                     print(e.reason)
                 print('failed!')
+
             index += 1
+
+        print(name, end=' ')
+        print()
+
     print('搞定了')
 
 
@@ -83,37 +99,38 @@ def check():
             for name_t in data_dic:
                 error = []
                 index = 0
+
                 for path in data_dic.get(name_t)[1][::2]:
-                    flag = False
+                    flag1 = False
+                    flag2 = False
                     print(path)
-                    # reader = easyocr.Reader(['ch_sim', 'en'], gpu=False)
-                    # result = reader.readtext(temp_path[index] + '\\' + path)
                     ocr = PaddleOCR(use_angle_cls=True, lang='ch')
                     result = ocr.ocr(temp_path[index] + '\\' + path, cls=True)
                     for item in result:
                         if len(re.findall(ID, str(item[1][0]))) > 0:
-                            flag = True
-                    if not flag:
-                        error.append(save_path[index].replace(main_save_path + '\\', ''))
+                            flag1 = True
+                        if len(re.findall(Day, str(item[1][0]))) > 0:
+                            flag2 = True
+                    if index == 0:
+                        if not flag1 or not flag2:
+                            error.append(save_path[index].replace(main_save_path + '\\', ''))
+                    elif index == 2:
+                        if not flag1:
+                            error.append(save_path[index].replace(main_save_path + '\\', ''))
                     index += 2
+
+                ocr = PaddleOCR(use_angle_cls=True, lang='ch')
+                result = ocr.ocr(temp_path[1] + '\\' + data_dic.get(name_t)[1][1], cls=True)
+                flag = False
+                for item in result:
+                    if len(re.findall(Day2, str(item[1][0]))) > 0:
+                        flag = True
+                if not flag:
+                    error.append(save_path[1].replace(main_save_path + '\\', ''))
+
                 if len(error) > 0:
                     problem.update({name_t: error})
-            # for name_t in problem:
-            #     index = 0
-            #     for path in data_dic.get(name_t)[1][::2]:
-            #         flag = []
-            #         print(path)
-            #         # reader = easyocr.Reader(['ch_sim', 'en'], gpu=False)
-            #         # result = reader.readtext(temp_path[index] + '\\' + path)
-            #         ocr = PaddleOCR(use_angle_cls=True, lang='ch', use_gpu=True)
-            #         result = ocr.ocr(temp_path[index] + '\\' + path, cls=True)
-            #         for item in result:
-            #             print(item)
-            #             if len(re.findall(ID, str(item[1][0]))) > 0:
-            #                 flag.append(True)
-            #         if flag.count(True) == 2:
-            #             che.append(name_t)
-            #         index += 2
+
             is_stop = True
         else:
             is_stop = True
