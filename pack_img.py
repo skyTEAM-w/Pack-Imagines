@@ -8,7 +8,6 @@ import shutil
 import re
 from paddleocr import PaddleOCR
 
-file_name = '2月27日信息xs2101“两码一查询”（收集结果）.xlsx'
 data_dic = {}
 date = datetime.date.today()
 main_save_path = '.\\{}{:0>2d}{:0>2d}信息xs2101'.format(date.year, date.month, date.day)
@@ -16,6 +15,7 @@ save_path = [main_save_path + '\\健康码', main_save_path + '\\行程码', mai
 check_path = '.\\temp'
 temp_path = [check_path + '\\health_code', check_path + '\\tra_code', check_path + '\\close_check']
 ID = r'^([1-9]\d{5}[12]\d{3}(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])\d{3}[0-9xX])$'
+file_name = '{:0>2d}月{:0>2d}日信息xs2101“两码一查询”（收集结果）.xlsx'.format(date.month, date.day)
 
 
 def save_data():
@@ -131,7 +131,6 @@ if __name__ == '__main__':
             if select == 'y':
                 if not os.path.exists(main_save_path):
                     os.mkdir(main_save_path)
-
                     for path in save_path:
                         os.mkdir(path)
                 if not os.path.exists(check_path):
@@ -150,5 +149,4 @@ if __name__ == '__main__':
                 os.remove(os.path.join(root, name))
             for name in dirs:
                 os.rmdir(os.path.join(root, name))
-
         os.rmdir(check_path)
