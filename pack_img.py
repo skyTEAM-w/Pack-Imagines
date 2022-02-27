@@ -25,8 +25,7 @@ def save_data():
     main_sheet = main_book.active
 
     for i in range(2, main_sheet.max_row):
-
-        if main_sheet.cell(i, 1).value is not None:
+        with main_sheet.cell(i, 1).value is not None:
             name = main_sheet.cell(i, 3).value
             url = []
 
@@ -138,11 +137,11 @@ def check():
                     problem.update({name_t: error})
 
             is_stop = True
+            print('------------------------------------------------------')
+            print(problem)
+            print('以上同学可能存在问题，请查看！')
         else:
             is_stop = True
-    print('------------------------------------------------------')
-    print(problem)
-    print('以上同学可能存在问题，请查看！')
 
 
 if __name__ == '__main__':
