@@ -1,11 +1,11 @@
-import openpyxl
-import os
-import urllib.request
-import urllib.error
 import datetime
-import time
-import shutil
+import os
 import re
+import shutil
+import urllib.error
+import urllib.request
+
+import openpyxl
 from paddleocr import PaddleOCR
 
 data_dic = {}
@@ -40,7 +40,8 @@ def save_data():
                                         .replace('?', '') + '.jpeg'
                                         for i in range(3)]]})
             print(i - 1, end=' ')
-            print()
+
+    print()
 
 
 def download_img():
@@ -72,7 +73,8 @@ def download_img():
             index += 1
 
         print(name, end=' ')
-        print()
+
+    print()
 
     print('搞定了')
 
@@ -113,10 +115,13 @@ def check():
                             flag2 = True
                     if index == 0:
                         if not flag1 or not flag2:
-                            error.append(save_path[index].replace(main_save_path + '\\', ''))
+                            error.append(save_path[index].replace(main_save_path + '\\', '') + ':' +
+                                         ('' if flag1 else '身份证错误') + '\t' +
+                                         ('' if flag2 else '日期错误'))
                     elif index == 2:
                         if not flag1:
-                            error.append(save_path[index].replace(main_save_path + '\\', ''))
+                            error.append(save_path[index].replace(main_save_path + '\\', '') + ':' +
+                                         '身份证错误')
                     index += 2
 
                 ocr = PaddleOCR(use_angle_cls=True, lang='ch')
@@ -126,7 +131,8 @@ def check():
                     if len(re.findall(Day2, str(item[1][0]))) > 0:
                         flag = True
                 if not flag:
-                    error.append(save_path[1].replace(main_save_path + '\\', ''))
+                    error.append(save_path[1].replace(main_save_path + '\\', '') + ':' +
+                                 '日期错误')
 
                 if len(error) > 0:
                     problem.update({name_t: error})
