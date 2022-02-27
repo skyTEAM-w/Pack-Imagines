@@ -116,12 +116,12 @@ def check():
                     if index == 0:
                         if not flag1 or not flag2:
                             error.append(save_path[index].replace(main_save_path + '\\', '') + ':' +
-                                         ('' if flag1 else '身份证错误') + '\t' +
-                                         ('' if flag2 else '日期错误'))
+                                         ('' if flag1 else '身份证显示不全') + '\t' +
+                                         ('' if flag2 else '非当日截图'))
                     elif index == 2:
                         if not flag1:
                             error.append(save_path[index].replace(main_save_path + '\\', '') + ':' +
-                                         '身份证错误')
+                                         '身份证显示不全')
                     index += 2
 
                 ocr = PaddleOCR(use_angle_cls=True, lang='ch')
@@ -132,7 +132,7 @@ def check():
                         flag = True
                 if not flag:
                     error.append(save_path[1].replace(main_save_path + '\\', '') + ':' +
-                                 '日期错误')
+                                 '非当日截图')
 
                 if len(error) > 0:
                     problem.update({name_t: error})
