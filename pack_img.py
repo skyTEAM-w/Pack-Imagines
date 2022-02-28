@@ -66,9 +66,8 @@ def download_img():
                     with open(save_path[index] + '\\' + img_name, 'wb') as file:
                         file.write(response.read())
 
-                if not os.path.exists(save_path[index] + '\\' + img_name) or name in check_list['存在问题']:
-                    shutil.copyfile(save_path[index] + '\\' + img_name,
-                                    temp_path[index] + '\\' + data_dic.get(name)[1][index])
+                shutil.copyfile(save_path[index] + '\\' + img_name,
+                                temp_path[index] + '\\' + data_dic.get(name)[1][index])
 
             except urllib.error.URLError as e:
                 if hasattr(e, 'code'):
