@@ -93,7 +93,7 @@ def download_img():
 def show_profile():
     print('这是一个临时用于打包打卡数据的python代码')
     print('----------------------------------')
-    print('使用前请确保与 .py/.exe 文件同一目录下\n有且仅有一个 收集数据 .xlsx 文件')
+    print('使用前请确保与 .py/.exe 文件同一目录下\n有当日 .xlsx 文件')
     print('一定要使用腾讯文档导出的 .xlsx 文件')
     print('请严格按照QQ群中发送的收集表顺序填写')
     print('遇到bug，及时联系开发人员，比如对面宿舍')
@@ -102,7 +102,7 @@ def show_profile():
 
 
 def check(file2):
-    print('是否对生成文件进行身份证检查？\ny:是\t其他:否')
+    print('是否对生成文件进行检查？\ny:是\t其他:否')
     is_stop = False
     problem = {}
     che = []
