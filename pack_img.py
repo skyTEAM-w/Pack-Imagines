@@ -10,8 +10,8 @@ from paddleocr import PaddleOCR
 
 date = datetime.date.today()
 read_path = '.\\list.txt'
-check_list_path = '.\\check_list.txt'
-out_put_path = '.\\output.txt'
+check_list_path = '.\\{}-{}check_list.txt'.format(date.month, date.day)
+out_put_path = '{}-{}.txt'.format(date.month, date.day)
 main_save_path = '.\\{}{:0>2d}{:0>2d}信息xs2101'.format(date.year, date.month, date.day)
 save_path = [main_save_path + '\\健康码', main_save_path + '\\行程码', main_save_path + '\\同行密接人员自查']
 check_path = '.\\temp'
@@ -19,11 +19,13 @@ temp_path = [check_path + '\\health_code', check_path + '\\tra_code', check_path
 ID = r'^([1-9]\d{5}[12]\d{3}(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])\d{3}[0-9xX])$'
 Day = r'{}-{:0>2d}-{:0>2d}.*'.format(date.year, date.month, date.day)
 Day2 = r'.*{}\.{:0>2d}\.{:0>2d}.*'.format(date.year, date.month, date.day)
-file_name = '{}月{:0>2d}日信息xs2101“两码一查询”（收集结果）.xlsx'.format(date.month, date.day)
+file_name = '{}月{}日信息xs2101“两码一查询”（收集结果）.xlsx'.format(date.month, date.day)
 
 data_dic = {}
 student_list = []
-check_list = {'存在问题': {}, '未填报': []}
+check_list = {'存在问题': [], '未填报': []}
+problem_buf = []
+not_submit_buf = []
 
 
 def save_data():
@@ -42,14 +44,14 @@ def save_data():
 
             data_dic.update({name: [url,
                                     [str(url[i])[23:66:1].replace('/', '').replace('.', '')
-                                        .replace('?', '') + '.jpeg'
+                            .replace('?', '') + '.jpeg'
                                      for i in range(3)]]})
             print(i - 1, end=' ')
 
     print()
 
 
-def download_img():
+def download_img(file_check):
     head = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
                       "Chrome/94.0.4606.61 Safari/537.36 Edg/94.0.992.31"}
@@ -61,8 +63,8 @@ def download_img():
                 response = urllib.request.urlopen(request)
                 img_name = name + '.jpeg'
 
-                if response.getcode() == 200 and (not os.path.exists(save_path[index] + '\\' + img_name) or name in
-                                                  check_list['存在问题']):
+                if response.getcode() == 200 and ((not os.path.exists(save_path[index] + '\\' + img_name) or name in
+                                                   (problem_buf + not_submit_buf))):
                     with open(save_path[index] + '\\' + img_name, 'wb') as file:
                         file.write(response.read())
 
@@ -81,8 +83,13 @@ def download_img():
         print(name, end=' ')
 
     for name in student_list:
-        if name not in data_dic.keys():
+        if name not in data_dic.keys() and name != '':
+            file_check.write(name + '\n')
             check_list['未填报'].append(name)
+    file_check.write('-----+-----+-----\n')
+
+    for name in check_list['未填报']:
+        not_submit_buf.pop(not_submit_buf.index(name))
 
     print()
 
@@ -100,7 +107,7 @@ def show_profile():
     print('详细阅读后,键入y开始打包,n退出,其他无效')
 
 
-def check(file2):
+def check(file_check, file_out_put):
     print('是否对生成文件进行检查？\ny:是\t其他:否')
     is_stop = False
     problem = {}
@@ -109,8 +116,7 @@ def check(file2):
         choice = str(input())
         if choice == 'y':
             for name_t in \
-                    (data_dic if len(check_list['存在问题']) == 0
-                        else check_list['存在问题'][0:len(check_list['存在问题']) - 1]):
+                    (data_dic if len(problem_buf + not_submit_buf) == 0 else (problem_buf + not_submit_buf)):
                 error = []
                 index = 0
 
@@ -118,7 +124,7 @@ def check(file2):
                     flag1 = False
                     flag2 = False
                     print(path)
-                    ocr = PaddleOCR(use_angle_cls=True, lang='ch')
+                    ocr = PaddleOCR(use_angle_cls=True, lang='ch', use_gpu=True)
                     result = ocr.ocr(temp_path[index] + '\\' + path, cls=True)
                     for item in result:
                         if len(re.findall(ID, str(item[1][0]))) > 0:
@@ -136,7 +142,7 @@ def check(file2):
                                          '身份证显示不全')
                     index += 2
 
-                ocr = PaddleOCR(use_angle_cls=True, lang='ch')
+                ocr = PaddleOCR(use_angle_cls=True, lang='ch', use_gpu=True)
                 result = ocr.ocr(temp_path[1] + '\\' + data_dic.get(name_t)[1][1], cls=True)
                 flag = False
                 for item in result:
@@ -151,16 +157,15 @@ def check(file2):
 
             is_stop = True
             print('------------------------------------------------------')
-            file = open(check_list_path, 'w')
             for name in problem:
-                file.write(name + '\n')
-                file2.write(name + ':')
+                file_check.write(name + '\n')
+                file_out_put.write(name + ':')
                 print(name + ':', end='')
                 for wrong in problem[name]:
-                    file2.write(wrong + ' ')
+                    file_out_put.write(wrong + ' ')
                     print(wrong, end=' ')
                 print()
-                file2.write('\n')
+                file_out_put.write('\n')
             print('以上同学可能存在问题，请查看！')
             check_list['存在问题'] = problem
         else:
@@ -180,12 +185,25 @@ if __name__ == '__main__':
                 out_file.write(str(datetime.datetime.now()) + '\n')
                 out_file.write('--------------------\n')
 
+                check_file = None
+                if not os.path.exists(check_list_path):
+                    check_file = open(check_list_path, 'w+')
+                else:
+                    check_file = open(check_list_path, 'r')
+                    temp_data = check_file.read().split('-----+-----+-----')
+                    data_1 = temp_data[0].split('\n')
+                    data_2 = temp_data[1].split('\n')
+                    for line in data_1:
+                        if line != '':
+                            not_submit_buf.append(line)
+                    for line in data_2:
+                        if line != '':
+                            problem_buf.append(line)
+                print(problem_buf+not_submit_buf)
+                check_file = open(check_list_path, 'w+')
                 if os.path.exists(read_path):
                     in_file = open(read_path, 'r')
                     student_list = in_file.read().split('\n')
-                if os.path.exists(check_list_path):
-                    file = open(check_list_path, 'r')
-                    check_list['存在问题'] = file.read().split('\n')
 
                 if not os.path.exists(main_save_path):
                     os.mkdir(main_save_path)
@@ -197,11 +215,11 @@ if __name__ == '__main__':
                         os.mkdir(temp)
                 # 实际操作区
                 save_data()
-                download_img()
-                check(out_file)
+                download_img(check_file)
+                check(check_file, out_file)
                 out_file.write('--------------------\n')
                 for name in check_list['未填报']:
-                    if len(check_list['未填报']) > 0:
+                    if name != '':
                         out_file.write(name + ':' + '未填报' + '\n')
                 print(check_list)
                 is_exit = True
