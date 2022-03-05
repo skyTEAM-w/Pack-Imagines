@@ -93,8 +93,9 @@ def download_img(file_check):
     file_check.write('-----+-----+-----\n') # 一个分隔符
 
     # 从未填报上次未填报缓存中去除仍未填报人员
-    for name in check_list['未填报']:
-        not_submit_buf.pop(not_submit_buf.index(name))
+    if len(not_submit_buf) > 0:
+        for name in check_list['未填报']:
+            not_submit_buf.pop(not_submit_buf.index(name))
 
     print()
 
