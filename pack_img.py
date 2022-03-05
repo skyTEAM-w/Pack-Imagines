@@ -79,7 +79,9 @@ def download_img(file_check):
                     print(e.code)
                 if hasattr(e, 'reason'):
                     print(e.reason)
-                print('failed!')
+                print(name + save_path[index].replace(main_save_path + '\\', '') + '保存失败！')
+
+
 
             index += 1
 
@@ -133,36 +135,38 @@ def check(file_check, file_out_put):
                     flag1 = False   # 身份证正确标志
                     flag2 = False   # 日期正确标志
 
-                    ocr = PaddleOCR(use_angle_cls=True, lang='ch', use_gpu=True)    # ocr对象
-                    result = ocr.ocr(temp_path[index] + '\\' + path, cls=True)      # 结果
-                    # 匹配身份证与日期
-                    for item in result:
-                        if len(re.findall(ID, str(item[1][0]))) > 0:
-                            flag1 = True
-                        if len(re.findall(Day, str(item[1][0]))) > 0:
-                            flag2 = True
-                    # 对健康码和同行密接分开处理
-                    if index == 0:
-                        if not flag1 or not flag2:
-                            error.append(save_path[index].replace(main_save_path + '\\', '') + ':' +
-                                         ('' if flag1 else '身份证显示不全') + ' ' +
-                                         ('' if flag2 else '非当日截图'))
-                    elif index == 2:
-                        if not flag1:
-                            error.append(save_path[index].replace(main_save_path + '\\', '') + ':' +
-                                         '身份证显示不全')
-                    index += 2
+                    if os.path.exists(temp_path[index] + '\\' + path):
+                        ocr = PaddleOCR(use_angle_cls=True, lang='ch', use_gpu=True)    # ocr对象
+                        result = ocr.ocr(temp_path[index] + '\\' + path, cls=True)      # 结果
+                        # 匹配身份证与日期
+                        for item in result:
+                            if len(re.findall(ID, str(item[1][0]))) > 0:
+                                flag1 = True
+                            if len(re.findall(Day, str(item[1][0]))) > 0:
+                                flag2 = True
+                        # 对健康码和同行密接分开处理
+                        if index == 0:
+                            if not flag1 or not flag2:
+                                error.append(save_path[index].replace(main_save_path + '\\', '') + ':' +
+                                            ('' if flag1 else '身份证显示不全') + ' ' +
+                                            ('' if flag2 else '非当日截图'))
+                        elif index == 2:
+                            if not flag1:
+                                error.append(save_path[index].replace(main_save_path + '\\', '') + ':' +
+                                            '身份证显示不全')
+                        index += 2
 
                 # 检查行程卡
-                ocr = PaddleOCR(use_angle_cls=True, lang='ch', use_gpu=True)
-                result = ocr.ocr(temp_path[1] + '\\' + data_dic.get(name_t)[1][1], cls=True)
-                flag = False
-                for item in result:
-                    if len(re.findall(Day2, str(item[1][0]))) > 0:
-                        flag = True
-                if not flag:
-                    error.append(save_path[1].replace(main_save_path + '\\', '') + ':' +
-                                 '非当日截图')
+                if os.path.exists(temp_path[1] + '\\' + data_dic.get(name_t)[1][1]):
+                    ocr = PaddleOCR(use_angle_cls=True, lang='ch', use_gpu=True)
+                    result = ocr.ocr(temp_path[1] + '\\' + data_dic.get(name_t)[1][1], cls=True)
+                    flag = False
+                    for item in result:
+                        if len(re.findall(Day2, str(item[1][0]))) > 0:
+                            flag = True
+                    if not flag:
+                        error.append(save_path[1].replace(main_save_path + '\\', '') + ':' +
+                                    '非当日截图')
 
                 # 若存在问题，向问题字典更新错误
                 if len(error) > 0:
