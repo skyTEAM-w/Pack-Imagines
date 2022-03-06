@@ -47,7 +47,7 @@ def save_data():
 
             data_dic.update({name: [url,
                                     [str(url[i])[23:66:1].replace('/', '').replace('.', '')
-                            .replace('?', '') + '.jpeg'
+                                    .replace('?', '') + '.jpeg'
                                      for i in range(3)]]})  # 定义各图片临时存储位置
             print(i - 1, end=' ')
 
@@ -154,7 +154,7 @@ def check(file_check, file_out_put):
                             if not flag1:
                                 error.append(save_path[index].replace(main_save_path + '\\', '') + ':' +
                                             '身份证显示不全')
-                        index += 2
+                    index += 2
 
                 # 检查行程卡
                 if os.path.exists(temp_path[1] + '\\' + data_dic.get(name_t)[1][1]):
@@ -211,14 +211,15 @@ if __name__ == '__main__':
                 else:
                     check_file = open(check_list_path, 'r')
                     temp_data = check_file.read().split('-----+-----+-----')
-                    data_1 = temp_data[0].split('\n')
-                    data_2 = temp_data[1].split('\n')
-                    for line in data_1:
-                        if line != '':
-                            not_submit_buf.append(line)
-                    for line in data_2:
-                        if line != '':
-                            problem_buf.append(line)
+                    if len(temp_data) > 0:
+                        data_1 = temp_data[0].split('\n')
+                        data_2 = temp_data[1].split('\n')
+                        for line in data_1:
+                            if line != '':
+                                not_submit_buf.append(line)
+                        for line in data_2:
+                            if line != '':
+                                problem_buf.append(line)
                 # print(problem_buf + not_submit_buf)
                 check_file = open(check_list_path, 'w+')    # 更新检查单文件读写状态
 
@@ -248,6 +249,9 @@ if __name__ == '__main__':
                 for name in check_list['未填报']:
                     if name != '':
                         out_file.write(name + ':' + '未填报' + '\n')
+
+                out_file.close()
+                check_file.close()
 
                 is_exit = True
 
