@@ -7,6 +7,7 @@ import urllib.request
 
 import openpyxl
 from paddleocr import PaddleOCR
+import cv2
 
 # 全局变量定义
 date = datetime.date.today()  # 当日时间
@@ -132,7 +133,7 @@ def check(file_check, file_out_put):
 
                 # 对健康码与同行密接自查进行检查
                 for path in data_dic.get(name_t)[1][::2]:
-                    flag1 = False   # 身份证正确标志
+                    flag1 = True   # 身份证正确标志(2022-3-8 鄂汇办湖北健康码不支持身份证显示)
                     flag2 = False   # 日期正确标志
 
                     if os.path.exists(temp_path[index] + '\\' + path):
