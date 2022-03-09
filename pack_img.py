@@ -133,7 +133,7 @@ def check(file_check, file_out_put):
 
                 # 对健康码与同行密接自查进行检查
                 for path in data_dic.get(name_t)[1][::2]:
-                    flag1 = True   # 身份证正确标志(2022-3-8 鄂汇办湖北健康码不支持身份证显示)
+                    flag1 = False   # 身份证正确标志(2022-3-8 鄂汇办湖北健康码不支持身份证显示)
                     flag2 = False   # 日期正确标志
 
                     if os.path.exists(temp_path[index] + '\\' + path):
@@ -147,9 +147,9 @@ def check(file_check, file_out_put):
                                 flag2 = True
                         # 对健康码和同行密接分开处理
                         if index == 0:
-                            if not flag1 or not flag2:
+                            if not flag2:
                                 error.append(save_path[index].replace(main_save_path + '\\', '') + ':' +
-                                            ('' if flag1 else '身份证显示不全') + ' ' +
+                                            # ('' if True else '身份证显示不全') + ' ' +
                                             ('' if flag2 else '非当日截图'))
                         elif index == 2:
                             if not flag1:
